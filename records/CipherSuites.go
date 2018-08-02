@@ -1,9 +1,21 @@
 package records
 
+import (
+	"encoding/binary"
+)
+
 type CipherSuite uint16
 
+func NewCipherSuite(value uint16) CipherSuite {
+	return CipherSuite(value)
+}
+
+func (suite CipherSuite) GetValue() uint16 {
+	return uint16(suite)
+}
+
 const (
-	SSL_NULL_WITH_NULL_NULL CipherSuite = 0x0000
+	SSL_NULL_WITH_NULL_NULL = 0x0000
 
 	SSL_RSA_WITH_NULL_MD5              = 0x0001
 	SSL_RSA_WITH_NULL_SHA              = 0x0002
@@ -41,11 +53,29 @@ const (
 	SSL_FORTEZZA_KEA_WITH_RC4_128_SHA      = 0x001E
 )
 
-type CipherSuites struct { // 2 bytes of length, followed by up to 2^16-1 bytes of data
+type CipherSuites struct { // 2 bytes of Length, followed by up to 2^16-1 bytes of data
 	length uint16
 	suites []CipherSuite
 }
 
-func NewCipherSuites(length uint16, suites []CipherSuite) CipherSuites {
-	return CipherSuites{length, suites}
+func NewCipherSuites(suites []CipherSuite) CipherSuites {
+	return CipherSuites{uint16(len(suites)), suites}
+}
+
+/*
+	Returns the total size in bytes of this struct
+*/
+func (suites CipherSuites) GetSize() int {
+	return 2 + int(suites.length*2)
+}
+
+func (suites CipherSuites) SerializeInto(buf []byte) {
+	binary.BigEndian.PutUint16(buf[0:2], suites.length)
+
+	for index, suite := range suites.suites {
+		var start int = (index + 1) * 2
+		var end int = (index + 2) * 2
+
+		binary.BigEndian.PutUint16(buf[start:end], uint16(suite))
+	}
 }

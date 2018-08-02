@@ -1,13 +1,5 @@
 package handshake
 
-import (
-	sslrand "../random"
-	"../records"
-	"bytes"
-	"encoding/binary"
-	"math"
-)
-
 /*
 These processes are performed
    in the handshake protocol, which can be summarized as follows: the
@@ -17,8 +9,8 @@ These processes are performed
    establish security enhancement capabilities between client and
    server.  The client hello and server hello establish the following
    attributes: Protocol Version, Session ID, Cipher Suite, and
-   Compression Method.  Additionally, two random values are generated
-   and exchanged: ClientHello.random and ServerHello.random.
+   Compression Method.  Additionally, two clientRandom values are generated
+   and exchanged: ClientHello.clientRandom and ServerHello.clientRandom.
 */
 
 /*
@@ -70,42 +62,6 @@ type HandshakeBody struct {
 
 type HelloRequest struct {
 	*HandshakeBody
-}
-
-type SessionID struct {
-	length uint8
-	id     []byte
-}
-
-func NewSessionID(id uint) SessionID {
-	var length uint8 = uint8(math.Floor(math.Log2(float64(id)))) + 1
-	var sessionID = SessionID{
-		length: length,
-		id:     make([]byte, length)}
-
-	var writer = bytes.NewBuffer(sessionID.id)
-
-	binary.Write(writer, binary.BigEndian, id)
-
-	return sessionID
-}
-
-type ClientHello struct {
-	*HandshakeBody
-	client_version      records.ProtocolVersion
-	random              sslrand.Random
-	session_id          SessionID
-	cipher_suites       records.CipherSuites
-	compression_methods records.CompressionMethods
-}
-
-func NewClientHello(random sslrand.Random, session_id SessionID) ClientHello {
-	return ClientHello{
-		client_version:      records.ProtocolVersion{3, 0},
-		random:              random,
-		session_id:          session_id,
-		cipher_suites:       records.NewCipherSuites(0, nil),
-		compression_methods: records.NewCompressionMethods(0, nil)}
 }
 
 type ServerHello struct {

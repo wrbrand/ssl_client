@@ -1,10 +1,5 @@
 package records
 
-type ProtocolVersion struct {
-	Major uint8
-	Minor uint8
-}
-
 type ContentType uint8
 
 const (
@@ -17,7 +12,7 @@ const (
 type SSLPlaintext struct {
 	Type     ContentType     // The higher level protocol used to process the enclosed fragment.
 	Version  ProtocolVersion // The versionof the protocol being employed
-	Length   uint16          // The length in bytes of the following SSLPlaintext.Fragment; should not exceed 2^14
+	Length   uint16          // The Length in bytes of the following SSLPlaintext.Fragment; should not exceed 2^14
 	Fragment []byte
 }
 
@@ -29,8 +24,8 @@ type SSLCompressed struct {
 }
 
 type Cipher struct {
-	Content []byte // of length SSLCompressed.length
-	MAC     []byte // of length CipherSpec.hash_size
+	Content []byte // of Length SSLCompressed.Length
+	MAC     []byte // of Length CipherSpec.hash_size
 }
 
 type StreamCipher struct {
