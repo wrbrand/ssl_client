@@ -1,7 +1,11 @@
 package handshake
 
 import (
+	sslrand "../random"
 	"../records"
+	"bytes"
+	"encoding/binary"
+	"math"
 )
 
 /*
@@ -73,36 +77,35 @@ type SessionID struct {
 	id     []byte
 }
 
-func NewSessionID(id uint) {
-	// TODO: Finish generating session IDs
-	/*var length = math.Floor(math.Log2(float64(id))) + 1
-	var sessionID = SessionID {
+func NewSessionID(id uint) SessionID {
+	var length uint8 = uint8(math.Floor(math.Log2(float64(id)))) + 1
+	var sessionID = SessionID{
 		length: length,
-		id: make([]byte, length)}
+		id:     make([]byte, length)}
 
-	binary.Write(sessionID.id, binary.LittleEndian, id)
+	var writer = bytes.NewBuffer(sessionID.id)
 
-	return sessionID*/
+	binary.Write(writer, binary.BigEndian, id)
+
+	return sessionID
 }
 
 type ClientHello struct {
 	*HandshakeBody
 	client_version      records.ProtocolVersion
-	random              Random
+	random              sslrand.Random
 	session_id          SessionID
-	cipher_suites       []byte // 2 bytes of length, followed by up to 2^16-1 bytes of data
-	compression_methods []byte // 1 byte of length, followed by up to 2^8-1 bytes of data
+	cipher_suites       records.CipherSuites
+	compression_methods records.CompressionMethods
 }
 
-func NewClientHello(random Random, session_id SessionID) ClientHello {
-	var hello = ClientHello{
+func NewClientHello(random sslrand.Random, session_id SessionID) ClientHello {
+	return ClientHello{
 		client_version:      records.ProtocolVersion{3, 0},
 		random:              random,
 		session_id:          session_id,
-		cipher_suites:       nil,
-		compression_methods: nil}
-
-	return hello
+		cipher_suites:       records.NewCipherSuites(0, nil),
+		compression_methods: records.NewCompressionMethods(0, nil)}
 }
 
 type ServerHello struct {
