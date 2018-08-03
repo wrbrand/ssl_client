@@ -1,4 +1,4 @@
-package ssl3
+package ssl
 
 type SSLPlaintext struct {
 	content_type	ContentType     // The higher level protocol used to process the enclosed fragment.

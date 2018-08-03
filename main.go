@@ -1,7 +1,7 @@
 package main
 
 import (
-	"./ssl3"
+	"./ssl"
 	"encoding/binary"
 	"fmt"
 	"math/rand"
@@ -12,19 +12,19 @@ import (
 func main() {
 	rand.Seed(time.Now().UnixNano())
 
-	tryHandshake(ssl3.NewClientRandom(), ssl3.NewSessionID(0))
+	tryHandshake(ssl.NewClientRandom(), ssl.NewSessionID(rand.Uint32()))
 }
 
-func tryHandshake(random ssl3.ClientRandom, session_id ssl3.SessionID) {
-	conn, err := net.Dial("tcp", "wrbrand.com:443")
+func tryHandshake(random ssl.ClientRandom, session_id ssl.SessionID) {
+	conn, err := net.Dial("tcp", "example.com:443")
 
 	if err != nil {
 		fmt.Print(err)
 	}
 
-	helloBody := ssl3.NewClientHello(random, session_id)
-	helloHandshake := ssl3.NewHandshake(ssl3.CLIENT_HELLO, helloBody.Serialization)
-	helloMessage := ssl3.NewSSLPlainText(ssl3.HANDSHAKE, ssl3.ProtocolVersion { Major: 3, Minor: 0}, helloHandshake.Serialization)
+	helloBody := ssl.NewClientHello(ssl.ProtocolVersion{3, 3}, random, session_id)
+	helloHandshake := ssl.NewHandshake(ssl.CLIENT_HELLO, helloBody.Serialization)
+	helloMessage := ssl.NewSSLPlainText(ssl.HANDSHAKE, ssl.ProtocolVersion { Major: 3, Minor: 3}, helloHandshake.Serialization)
 
 	binary.Write(conn, binary.BigEndian, helloMessage.Serialization.Serialize())
 }
