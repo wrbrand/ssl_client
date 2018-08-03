@@ -1,21 +1,5 @@
 package ssl3
 
-type ContentType uint8
-
-const (
-	CHANGE_CIPHER_SPEC ContentType = 20
-	ALERT                          = 21
-	HANDSHAKE                      = 22
-	APPLICATION_DATA               = 23
-)
-
-type SSLPlaintext struct {
-	Type     ContentType     // The higher level protocol used to process the enclosed fragment.
-	Version  ProtocolVersion // The versionof the protocol being employed
-	Length   uint16          // The Length in bytes of the following SSLPlaintext.Fragment; should not exceed 2^14
-	Fragment []byte
-}
-
 type SSLCompressed struct {
 	Type     ContentType
 	Version  ProtocolVersion

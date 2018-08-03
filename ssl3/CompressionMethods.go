@@ -25,10 +25,13 @@ func (methods CompressionMethods) GetSize() int {
 func (methods CompressionMethods) SerializeInto(buf []byte) {
 	copy(buf[0:1], []byte{methods.length})
 
-	for index, method := range methods.methods {
-		var start int = index + 1
-		var end int = index + 2
+	var start = 1
+
+	for _, method := range methods.methods {
+		var end = start + 1
 
 		copy(buf[start:end], []byte{byte(method)})
+
+		start = end
 	}
 }
