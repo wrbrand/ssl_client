@@ -1,4 +1,4 @@
-package records
+package ssl3
 
 type CompressionMethod uint8
 

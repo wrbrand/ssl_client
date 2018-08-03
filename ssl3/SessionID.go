@@ -1,8 +1,7 @@
-package handshake
+package ssl3
 
 import (
 	"encoding/binary"
-	"fmt"
 )
 
 type SessionID struct {
@@ -12,8 +11,8 @@ type SessionID struct {
 
 func NewSessionID(id uint32) SessionID {
 	/*
-		TODO: Support SessionIDs with bit lengths other than 32
-	  	e.g var length uint8 = uint8(math.Floor(math.Log2(float64(id)))) + 1
+			TODO: Support SessionIDs with bit lengths other than 32
+		  	e.g var length uint8 = uint8(math.Floor(math.Log2(float64(id)))) + 1
 	*/
 
 	var length uint8 = 4
@@ -31,7 +30,6 @@ func NewSessionID(id uint32) SessionID {
 	Returns the total size in bytes of this struct
 */
 func (session SessionID) GetSize() int {
-	fmt.Print(session.length)
 	return 1 + int(session.length)
 }
 

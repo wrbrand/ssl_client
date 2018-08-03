@@ -1,4 +1,4 @@
-package records
+package ssl3
 
 import (
 	"encoding/binary"

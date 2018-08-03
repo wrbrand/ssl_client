@@ -1,4 +1,4 @@
-package records
+package ssl3
 
 type ProtocolVersion struct {
 	Major uint8
