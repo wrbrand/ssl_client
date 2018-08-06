@@ -4,43 +4,50 @@ type Handshake struct {
 	msg_type      HandshakeType
 	length        HandshakeSize // Per spec, this should be a 24-bit uint
 	body          Serializable
-	Serialization NestedSerializable
 }
 
 func NewHandshake(msg_type HandshakeType, body Serializable) Handshake {
 	length := NewHandshakeSize(body.GetSize())
 
 	return Handshake{
-		msg_type:      msg_type,
-		length:        length,
-		body:          body,
-		Serialization: NewNestedSerializable([]Serializable{msg_type, length, body})}
+		msg_type: msg_type,
+		length:   length,
+		body:     body,
+	}
+}
+
+func (handshake Handshake) GetSerialization() NestedSerializable {
+	return NewNestedSerializable([]Serializable{
+		handshake.msg_type,
+		handshake.length,
+		handshake.body,
+	})
 }
 
 func DeserializeHandshake(buf []byte) (Handshake, int) {
-	var bufferPosition = 0;
+	var handshake = Handshake{}
+	var bytesRead int
 
-	msgType, bytesRead := DeserializeHandshakeType(buf[bufferPosition:])
+	deserializers := []func([]byte) (int){
+		func(buf []byte) (int) { handshake.msg_type, bytesRead = DeserializeHandshakeType(buf); return bytesRead },
+		func(buf []byte) (int) { handshake.length, bytesRead = DeserializeHandshakeSize(buf); return bytesRead },
+		func(buf []byte) (int) {
+			switch (handshake.msg_type) {
+				case CLIENT_HELLO:
+					body, bytesRead := DeserializeClientHello(buf)
 
-	bufferPosition += bytesRead
-
-	length, bytesRead := DeserializeHandshakeSize(buf[bufferPosition:])
-
-	bufferPosition += bytesRead
-
-	switch (msgType) {
-		case CLIENT_HELLO:
-			body, bytesRead := DeserializeClientHello(buf[4:4 + length.GetValue()])
-
-			bufferPosition += bytesRead
-
-			return Handshake{
-				msgType,
-				length,
-				body.Serialization,
-				NewNestedSerializable([]Serializable{msgType, length, body.Serialization}),
-			}, bufferPosition
+					handshake.body = body.GetSerialization()
+					return bytesRead
+				default:
+					return 0
+			}
+		},
 	}
 
-	return Handshake{}, bufferPosition
+	var bufferPosition = 0;
+	for _, deserializer := range deserializers {
+		bufferPosition += deserializer(buf[bufferPosition:])
+	}
+
+	return handshake, bufferPosition
 }

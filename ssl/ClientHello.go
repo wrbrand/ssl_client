@@ -6,7 +6,6 @@ type ClientHello struct {
 	session_id          SessionID
 	cipher_suites       CipherSuites
 	compression_methods CompressionMethods
-	Serialization       NestedSerializable
 }
 
 func NewClientHello(version ProtocolVersion, random ClientRandom, session_id SessionID) ClientHello {
@@ -66,7 +65,6 @@ func NewClientHello(version ProtocolVersion, random ClientRandom, session_id Ses
 		TLS_RSA_WITH_IDEA_CBC_SHA,
 		TLS_EMPTY_RENEGOTIATION_INFO_SCSV,
 	})
-
 	var compression_methods CompressionMethods = NewCompressionMethods([]CompressionMethod{NULL_COMPRESSION})
 
 	return ClientHello{
@@ -75,7 +73,17 @@ func NewClientHello(version ProtocolVersion, random ClientRandom, session_id Ses
 		session_id:          session_id,
 		cipher_suites:       suites,
 		compression_methods: compression_methods,
-		Serialization:       NewNestedSerializable([]Serializable{version, random, session_id, suites, compression_methods})}
+	}
+}
+
+func (hello ClientHello) GetSerialization() NestedSerializable {
+	return NewNestedSerializable([]Serializable{
+		hello.client_version,
+		hello.random,
+		hello.session_id,
+		hello.cipher_suites,
+		hello.compression_methods,
+	})
 }
 
 func DeserializeClientHello(buf []byte) (ClientHello, int) {
@@ -107,6 +115,5 @@ func DeserializeClientHello(buf []byte) (ClientHello, int) {
 		session_id,
 		suites,
 		compression_methods,
-		NewNestedSerializable([]Serializable{version, random, session_id, suites, compression_methods}),
 	}, bufferPosition
 }

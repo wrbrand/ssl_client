@@ -25,19 +25,19 @@ func initialize() {
 
 func tryHandshake(random ssl.ClientRandom, config configuration.Configuration) {
 	helloBody := ssl.NewClientHello(config.Handshake.RecordProtocolVersion, random, config.Client.SessionID)
-	helloHandshake := ssl.NewHandshake(ssl.CLIENT_HELLO, helloBody.Serialization)
-	helloMessage := ssl.NewSSLPlaintext(ssl.HANDSHAKE, config.Handshake.HandshakeProtocolVersion, helloHandshake.Serialization)
+	helloHandshake := ssl.NewHandshake(ssl.CLIENT_HELLO, helloBody.GetSerialization())
+	helloMessage := ssl.NewSSLPlaintext(ssl.HANDSHAKE, config.Handshake.HandshakeProtocolVersion, helloHandshake.GetSerialization())
 
-	getResponse("tcp", "example.com:443", helloMessage.Serialization.Serialize())
+	getResponse("tcp", "example.com:443", helloMessage.GetSerialization().Serialize())
 }
 
 func tryDecodeHandshake(random ssl.ClientRandom, config configuration.Configuration) {
 	helloBody := ssl.NewClientHello(config.Handshake.RecordProtocolVersion, random, config.Client.SessionID)
-	helloHandshake := ssl.NewHandshake(ssl.CLIENT_HELLO, helloBody.Serialization)
-	helloMessage := ssl.NewSSLPlaintext(ssl.HANDSHAKE, config.Handshake.HandshakeProtocolVersion, helloHandshake.Serialization)
+	helloHandshake := ssl.NewHandshake(ssl.CLIENT_HELLO, helloBody.GetSerialization())
+	helloMessage := ssl.NewSSLPlaintext(ssl.HANDSHAKE, config.Handshake.HandshakeProtocolVersion, helloHandshake.GetSerialization())
 
 	tmp := make([]byte, 65536)
-	helloMessage.Serialization.SerializeInto(tmp)
+	helloMessage.GetSerialization().SerializeInto(tmp)
 	var message = ssl.DeserializeSSLPlaintext(tmp)
 
 	fmt.Print("Message deserialized: ", message, "\n")
@@ -45,6 +45,8 @@ func tryDecodeHandshake(random ssl.ClientRandom, config configuration.Configurat
 	fmt.Print("Version: ", message.Version, "\n")
 	fmt.Print("Length: ", message.Length, "\n")
 	fmt.Print("Fragment: ", message.Fragment, "\n")
+	fmt.Print(message.GetSerialization())
+	fmt.Printf("Reserialization: %x", message.GetSerialization().Serialize())
 }
 
 func getResponse(network string, address string, message []byte) {
