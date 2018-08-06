@@ -2,32 +2,43 @@ package main
 
 import (
 	"./ssl"
-		"fmt"
+	"fmt"
 	"math/rand"
 	"net"
 	"time"
 	"encoding/binary"
+	"./configuration"
 )
 
 func main() {
-	rand.Seed(time.Now().UnixNano())
+	initialize()
 
-	tryHandshake(ssl.NewClientRandom(), ssl.NewSessionID(rand.Uint32()))
+	config := configuration.Load("config.json")
+
+	tryHandshake(ssl.NewClientRandom(), config)
 }
 
-func tryHandshake(random ssl.ClientRandom, session_id ssl.SessionID) {
+func initialize() {
+	rand.Seed(time.Now().UnixNano())
+}
+
+func tryHandshake(random ssl.ClientRandom, config configuration.Configuration) {
+	helloBody := ssl.NewClientHello(config.Handshake.RecordProtocolVersion, random, config.Client.SessionID)
+	helloHandshake := ssl.NewHandshake(ssl.CLIENT_HELLO, helloBody.Serialization)
+	helloMessage := ssl.NewSSLPlainText(ssl.HANDSHAKE, config.Handshake.HandshakeProtocolVersion, helloHandshake.Serialization)
+
+	getResponse("tcp", "example.com:443", helloMessage.Serialization.Serialize())
+}
+
+func getResponse(network string, address string, message []byte) {
 	timeout := 30 * time.Second
 
-	conn, err := net.Dial("tcp", "example.com:443")
+	conn, err := net.Dial(network, address)
 	if err != nil {
 		panic(err)
 	}
 
-	helloBody := ssl.NewClientHello(ssl.ProtocolVersion{3, 3}, random, session_id)
-	helloHandshake := ssl.NewHandshake(ssl.CLIENT_HELLO, helloBody.Serialization)
-	helloMessage := ssl.NewSSLPlainText(ssl.HANDSHAKE, ssl.ProtocolVersion { Major: 3, Minor: 3}, helloHandshake.Serialization)
-
-	binary.Write(conn, binary.BigEndian, helloMessage.Serialization.Serialize())
+	binary.Write(conn, binary.BigEndian, message)
 
 	defer conn.Close()
 
@@ -43,5 +54,5 @@ func tryHandshake(random ssl.ClientRandom, session_id ssl.SessionID) {
 
 	conn.Close();
 
-	fmt.Printf("%x", response)
+	fmt.Printf("Response: %x", response)
 }

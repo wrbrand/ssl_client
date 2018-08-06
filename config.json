@@ -1,0 +1,18 @@
+{
+  "Client": {
+    "SessionID": {
+      "Length": 1,
+      "ID": "AA=="
+    }
+  },
+  "Handshake": {
+    "RecordProtocolVersion": {
+      "Major": 3,
+      "Minor": 3
+    },
+    "HandshakeProtocolVersion": {
+      "Major": 3,
+      "Minor": 3
+    }
+  }
+}
