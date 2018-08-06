@@ -29,6 +29,7 @@ func Load(filename string) Configuration {
 		fmt.Println("Error attempting to decode configuration file:", err)
 	}
 
+	fmt.Printf("Configuration loaded.\n")
 	fmt.Printf("Session ID: %x\n", configuration.Client.SessionID)
 	fmt.Printf("Record Protocol Version: %x\n", configuration.Handshake.RecordProtocolVersion)
 	fmt.Printf("Handshake Protocol Version: %x\n", configuration.Handshake.HandshakeProtocolVersion)

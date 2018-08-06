@@ -35,3 +35,10 @@ func (random ClientRandom) SerializeInto(buf []byte) {
 	binary.BigEndian.PutUint32(buf[0:4], random.gmt_unix_time)
 	copy(buf[4:31], random.random_bytes)
 }
+
+func DeserializeClientRandom(buf []byte) (ClientRandom, int) {
+	return ClientRandom{
+		uint32(uint8(buf[0] << 24) + uint8(buf[1] << 16) + uint8(buf[2] << 8) + uint8(buf[3])),
+		buf[4:],
+	}, 32
+}

@@ -1,11 +1,5 @@
 package ssl
 
-type CompressionMethod uint8
-
-const (
-	NULL_COMPRESSION CompressionMethod = 0
-)
-
 type CompressionMethods struct { // 1 byte of Length, followed by up to 2^8-1 bytes of data
 	length  uint8
 	methods []CompressionMethod
@@ -34,4 +28,20 @@ func (methods CompressionMethods) SerializeInto(buf []byte) {
 
 		start = end
 	}
+}
+
+func DeserializeCompressionMethods(buf []byte) (CompressionMethods, int) {
+	var suites []CompressionMethod
+
+	bufferPosition := 0
+	methodsLength := uint8(buf[0])
+
+	bufferPosition += 1
+
+	for i := methodsLength; i > 0; i-- {
+		suites = append(suites, NewCompressionMethod(buf[bufferPosition]))
+		bufferPosition += 1
+	}
+
+	return NewCompressionMethods(suites), bufferPosition
 }

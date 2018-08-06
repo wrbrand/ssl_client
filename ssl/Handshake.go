@@ -17,13 +17,30 @@ func NewHandshake(msg_type HandshakeType, body Serializable) Handshake {
 		Serialization: NewNestedSerializable([]Serializable{msg_type, length, body})}
 }
 
-type HandshakeBody struct{}
-type HelloRequest struct{ *HandshakeBody }
-type ServerHello struct{ *HandshakeBody }
-type Certificate struct{ *HandshakeBody }
-type ServerKeyExchange struct{ *HandshakeBody }
-type CertificateRequest struct{ *HandshakeBody }
-type ServerHelloDone struct{ *HandshakeBody }
-type CertificateVerify struct{ *HandshakeBody }
-type ClientKeyExchange struct{ *HandshakeBody }
-type Finished struct{ *HandshakeBody }
+func DeserializeHandshake(buf []byte) (Handshake, int) {
+	var bufferPosition = 0;
+
+	msgType, bytesRead := DeserializeHandshakeType(buf[bufferPosition:])
+
+	bufferPosition += bytesRead
+
+	length, bytesRead := DeserializeHandshakeSize(buf[bufferPosition:])
+
+	bufferPosition += bytesRead
+
+	switch (msgType) {
+		case CLIENT_HELLO:
+			body, bytesRead := DeserializeClientHello(buf[4:4 + length.GetValue()])
+
+			bufferPosition += bytesRead
+
+			return Handshake{
+				msgType,
+				length,
+				body.Serialization,
+				NewNestedSerializable([]Serializable{msgType, length, body.Serialization}),
+			}, bufferPosition
+	}
+
+	return Handshake{}, bufferPosition
+}

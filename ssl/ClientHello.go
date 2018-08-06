@@ -77,3 +77,36 @@ func NewClientHello(version ProtocolVersion, random ClientRandom, session_id Ses
 		compression_methods: compression_methods,
 		Serialization:       NewNestedSerializable([]Serializable{version, random, session_id, suites, compression_methods})}
 }
+
+func DeserializeClientHello(buf []byte) (ClientHello, int) {
+	var bufferPosition = 0;
+
+	version, bytesRead := DeserializeProtocolVersion(buf[bufferPosition:])
+
+	bufferPosition += bytesRead
+
+	random, bytesRead := DeserializeClientRandom(buf[bufferPosition:])
+
+	bufferPosition += bytesRead
+
+	session_id, bytesRead := DeserializeSessionID(buf[bufferPosition:])
+
+	bufferPosition += bytesRead
+
+	suites, bytesRead := DeserializeCipherSuites(buf[bufferPosition:])
+
+	bufferPosition += bytesRead
+
+	compression_methods, bytesRead := DeserializeCompressionMethods(buf[bufferPosition:])
+
+	bufferPosition += bytesRead
+
+	return ClientHello{
+		version,
+		random,
+		session_id,
+		suites,
+		compression_methods,
+		NewNestedSerializable([]Serializable{version, random, session_id, suites, compression_methods}),
+	}, bufferPosition
+}

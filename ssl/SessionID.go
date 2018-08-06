@@ -37,3 +37,12 @@ func (session SessionID) SerializeInto(buf []byte) {
 	copy(buf[0:1], []uint8{session.Length})
 	copy(buf[1:1+session.Length], session.ID[0:session.Length])
 }
+
+func DeserializeSessionID(buf []byte) (SessionID, int) {
+	length := uint8(buf[0])
+
+	return SessionID{
+		length,
+		buf[1:1 + length],
+	}, int(1 + length)
+}

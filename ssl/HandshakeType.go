@@ -26,3 +26,7 @@ func (num HandshakeType) Serialize() []byte {
 func (num HandshakeType) SerializeInto(buf []byte) {
 	copy(buf[0:num.GetSize()], num.Serialize())
 }
+
+func DeserializeHandshakeType(buf []byte) (HandshakeType, int) {
+	return HandshakeType(buf[0]), 1
+}

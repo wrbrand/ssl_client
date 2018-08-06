@@ -15,7 +15,8 @@ func main() {
 
 	config := configuration.Load("config.json")
 
-	tryHandshake(ssl.NewClientRandom(), config)
+	//tryHandshake(ssl.NewClientRandom(), config)
+	tryDecodeHandshake(ssl.NewClientRandom(), config)
 }
 
 func initialize() {
@@ -25,9 +26,25 @@ func initialize() {
 func tryHandshake(random ssl.ClientRandom, config configuration.Configuration) {
 	helloBody := ssl.NewClientHello(config.Handshake.RecordProtocolVersion, random, config.Client.SessionID)
 	helloHandshake := ssl.NewHandshake(ssl.CLIENT_HELLO, helloBody.Serialization)
-	helloMessage := ssl.NewSSLPlainText(ssl.HANDSHAKE, config.Handshake.HandshakeProtocolVersion, helloHandshake.Serialization)
+	helloMessage := ssl.NewSSLPlaintext(ssl.HANDSHAKE, config.Handshake.HandshakeProtocolVersion, helloHandshake.Serialization)
 
 	getResponse("tcp", "example.com:443", helloMessage.Serialization.Serialize())
+}
+
+func tryDecodeHandshake(random ssl.ClientRandom, config configuration.Configuration) {
+	helloBody := ssl.NewClientHello(config.Handshake.RecordProtocolVersion, random, config.Client.SessionID)
+	helloHandshake := ssl.NewHandshake(ssl.CLIENT_HELLO, helloBody.Serialization)
+	helloMessage := ssl.NewSSLPlaintext(ssl.HANDSHAKE, config.Handshake.HandshakeProtocolVersion, helloHandshake.Serialization)
+
+	tmp := make([]byte, 65536)
+	helloMessage.Serialization.SerializeInto(tmp)
+	var message = ssl.DeserializeSSLPlaintext(tmp)
+
+	fmt.Print("Message deserialized: ", message, "\n")
+	fmt.Print("Content type: ", message.Content_type, "\n")
+	fmt.Print("Version: ", message.Version, "\n")
+	fmt.Print("Length: ", message.Length, "\n")
+	fmt.Print("Fragment: ", message.Fragment, "\n")
 }
 
 func getResponse(network string, address string, message []byte) {

@@ -20,3 +20,7 @@ func (num ContentType) Serialize() []byte {
 func (num ContentType) SerializeInto(buf []byte) {
 	copy(buf[0:num.GetSize()], num.Serialize())
 }
+
+func DeserializeContentType(buf []byte) (ContentType, int) {
+	return ContentType(buf[0]), 1
+}

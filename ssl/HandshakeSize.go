@@ -10,6 +10,10 @@ func NewHandshakeSize(num int) HandshakeSize {
 		uint8(num)}
 }
 
+func (num HandshakeSize) GetValue() uint {
+	return uint(num[0] << 16) + uint(num[1] << 8) + uint(num[2])
+}
+
 func (num HandshakeSize) GetSize() int {
 	return 3
 }
@@ -20,4 +24,8 @@ func (num HandshakeSize) Serialize() []byte {
 
 func (num HandshakeSize) SerializeInto(buf []byte) {
 	copy(buf[0:num.GetSize()], num.Serialize())
+}
+
+func DeserializeHandshakeSize(buf []byte) (HandshakeSize, int) {
+	return HandshakeSize{ buf[0], buf[1], buf[2] }, 3
 }

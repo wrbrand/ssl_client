@@ -12,6 +12,10 @@ func NewContentSize(num int) ContentSize {
 	return ret
 }
 
+func (num ContentSize) GetValue() uint {
+	return uint(num[0] << 8) + uint(num[1])
+}
+
 func (num ContentSize) GetSize() int {
 	return 2
 }
@@ -22,4 +26,8 @@ func (num ContentSize) Serialize() []byte {
 
 func (num ContentSize) SerializeInto(buf []byte) {
 	copy(buf[0:num.GetSize()], num.Serialize())
+}
+
+func DeserializeContentSize(buf []byte) (ContentSize, int) {
+	return ContentSize{ buf[0], buf[1] }, 2
 }
