@@ -21,21 +21,20 @@ func NewSSLPlaintext(content_type ContentType, version ProtocolVersion, fragment
 }
 
 func DeserializeSSLPlaintext(buf []byte) SSLPlaintext {
+	var plaintext = SSLPlaintext{}
+	var bytesRead int
+
+	deserializers := []func([]byte) (int){
+		func(x []byte) (int) { plaintext.Content_type, bytesRead = DeserializeContentType(x); return bytesRead },
+		func(x []byte) (int) { plaintext.Version, bytesRead = DeserializeProtocolVersion(x); return bytesRead },
+		func(x []byte) (int) { plaintext.Length, bytesRead = DeserializeContentSize(x); return bytesRead },
+		func(x []byte) (int) { obj, bytesRead := DeserializeHandshake(x); plaintext.Fragment = obj.Serialization; return bytesRead },
+	}
+
 	var bufferPosition = 0;
+	for _, deserializer := range deserializers {
+		bufferPosition += deserializer(buf[bufferPosition:])
+	}
 
-	contentType, bytesRead := DeserializeContentType(buf[bufferPosition:])
-
-	bufferPosition += bytesRead
-
-	version, bytesRead := DeserializeProtocolVersion(buf[bufferPosition:])
-
-	bufferPosition += bytesRead
-
-	_, bytesRead = DeserializeContentSize(buf[bufferPosition:])
-
-	bufferPosition += bytesRead
-
-	fragment, bytesRead := DeserializeHandshake(buf[bufferPosition:])
-
-	return NewSSLPlaintext(contentType, version, fragment.Serialization)
+	return plaintext
 }
