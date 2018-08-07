@@ -32,9 +32,9 @@ func tryHandshake(random ssl.ClientRandom, config ssl.Configuration) {
 	fmt.Printf("Response: %x \n", response)
 
 	var message = ssl.DeserializeSSLPlaintext(response)
-	fmt.Print(message.Content_type)
 	if message.Content_type == ssl.ALERT {
-		fmt.Print(ssl.DeserializeAlert(message.GetSerialization().Serialize()))
+		alert, _ := ssl.DeserializeAlert(message.Fragment.Serialize())
+		fmt.Printf("%x %x", alert.Level, alert.Description)
 	}
 }
 
