@@ -7,32 +7,32 @@ import (
 	"net"
 	"time"
 	"encoding/binary"
-	"./configuration"
 )
 
 func main() {
 	initialize()
 
-	config := configuration.Load("config.json")
+	config := ssl.LoadConfiguration("config.json")
 
 	//tryHandshake(ssl.NewClientRandom(), config)
 	tryDecodeHandshake(ssl.NewClientRandom(), config)
+	tryHandshake(ssl.NewClientRandom(), config)
 }
 
 func initialize() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-func tryHandshake(random ssl.ClientRandom, config configuration.Configuration) {
-	helloBody := ssl.NewClientHello(config.Handshake.RecordProtocolVersion, random, config.Client.SessionID)
+func tryHandshake(random ssl.ClientRandom, config ssl.Configuration) {
+	helloBody := ssl.NewClientHello(random, config)
 	helloHandshake := ssl.NewHandshake(ssl.CLIENT_HELLO, helloBody.GetSerialization())
 	helloMessage := ssl.NewSSLPlaintext(ssl.HANDSHAKE, config.Handshake.HandshakeProtocolVersion, helloHandshake.GetSerialization())
 
 	getResponse("tcp", "example.com:443", helloMessage.GetSerialization().Serialize())
 }
 
-func tryDecodeHandshake(random ssl.ClientRandom, config configuration.Configuration) {
-	helloBody := ssl.NewClientHello(config.Handshake.RecordProtocolVersion, random, config.Client.SessionID)
+func tryDecodeHandshake(random ssl.ClientRandom, config ssl.Configuration) {
+	helloBody := ssl.NewClientHello(random, config)
 	helloHandshake := ssl.NewHandshake(ssl.CLIENT_HELLO, helloBody.GetSerialization())
 	helloMessage := ssl.NewSSLPlaintext(ssl.HANDSHAKE, config.Handshake.HandshakeProtocolVersion, helloHandshake.GetSerialization())
 

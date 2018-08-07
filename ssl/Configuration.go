@@ -1,4 +1,4 @@
-package configuration
+package ssl
 
 import (
 	"os"
@@ -18,7 +18,7 @@ func NewConfiguration() Configuration {
 	}
 }
 
-func Load(filename string) Configuration {
+func LoadConfiguration(filename string) Configuration {
 	file, _ := os.Open(filename)
 	defer file.Close()
 	decoder := json.NewDecoder(file)

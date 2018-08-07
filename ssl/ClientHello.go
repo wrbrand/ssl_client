@@ -8,70 +8,14 @@ type ClientHello struct {
 	compression_methods CompressionMethods
 }
 
-func NewClientHello(version ProtocolVersion, random ClientRandom, session_id SessionID) ClientHello {
-	var suites CipherSuites = NewCipherSuites([]CipherSuite{
-		TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
-		TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
-		TLS_DHE_DSS_WITH_AES_256_GCM_SHA384,
-		TLS_DHE_RSA_WITH_AES_256_GCM_SHA384,
-		TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,
-		TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,
-		TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256,
-		TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8,
-		TLS_ECDHE_ECDSA_WITH_AES_256_CCM,
-		TLS_DHE_RSA_WITH_AES_256_CCM_8,
-		TLS_DHE_RSA_WITH_AES_256_CCM,
-		TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384,
-		TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,
-		TLS_ECDHE_ECDSA_WITH_CAMELLIA_256_CBC_SHA384,
-		TLS_ECDHE_RSA_WITH_CAMELLIA_256_CBC_SHA384,
-		TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256,
-		TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA256,
-		TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
-		TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
-		TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA,
-		TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA,
-		TLS_RSA_WITH_AES_256_GCM_SHA384,
-		TLS_RSA_WITH_AES_256_CCM_8,
-		TLS_RSA_WITH_AES_256_CCM,
-		TLS_RSA_WITH_CAMELLIA_256_CBC_SHA256,
-		TLS_RSA_WITH_CAMELLIA_256_CBC_SHA,
-		TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
-		TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
-		TLS_DHE_DSS_WITH_AES_128_GCM_SHA256,
-		TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,
-		TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8,
-		TLS_ECDHE_ECDSA_WITH_AES_128_CCM,
-		TLS_DHE_RSA_WITH_AES_128_CCM_8,
-		TLS_DHE_RSA_WITH_AES_128_CCM,
-		TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,
-		TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,
-		TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_CBC_SHA256,
-		TLS_ECDHE_RSA_WITH_CAMELLIA_128_CBC_SHA256,
-		TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256,
-		TLS_DHE_DSS_WITH_CAMELLIA_128_CBC_SHA256,
-		TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
-		TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
-		TLS_DHE_RSA_WITH_SEED_CBC_SHA,
-		TLS_DHE_DSS_WITH_SEED_CBC_SHA,
-		TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA,
-		TLS_DHE_DSS_WITH_CAMELLIA_128_CBC_SHA,
-		TLS_RSA_WITH_AES_128_GCM_SHA256,
-		TLS_RSA_WITH_AES_128_CCM_8,
-		TLS_RSA_WITH_AES_128_CCM,
-		TLS_RSA_WITH_CAMELLIA_128_CBC_SHA256,
-		TLS_RSA_WITH_SEED_CBC_SHA,
-		TLS_RSA_WITH_CAMELLIA_128_CBC_SHA,
-		TLS_RSA_WITH_IDEA_CBC_SHA,
-		TLS_EMPTY_RENEGOTIATION_INFO_SCSV,
-	})
+func NewClientHello(random ClientRandom, config Configuration) ClientHello {
 	var compression_methods CompressionMethods = NewCompressionMethods([]CompressionMethod{NULL_COMPRESSION})
 
 	return ClientHello{
-		client_version:      version,
+		client_version:      config.Handshake.RecordProtocolVersion,
 		random:              random,
-		session_id:          session_id,
-		cipher_suites:       suites,
+		session_id:          config.Client.SessionID,
+		cipher_suites:       config.Client.GetCipherSuites(),
 		compression_methods: compression_methods,
 	}
 }
@@ -87,33 +31,21 @@ func (hello ClientHello) GetSerialization() NestedSerializable {
 }
 
 func DeserializeClientHello(buf []byte) (ClientHello, int) {
+	var hello = ClientHello{}
+	var bytesRead int
+
+	deserializers := []func([]byte) (int){
+		func(x []byte) (int) { hello.client_version, bytesRead = DeserializeProtocolVersion(x); return bytesRead },
+		func(x []byte) (int) { hello.random, bytesRead = DeserializeClientRandom(x); return bytesRead },
+		func(x []byte) (int) { hello.session_id, bytesRead = DeserializeSessionID(x); return bytesRead },
+		func(x []byte) (int) { hello.cipher_suites, bytesRead = DeserializeCipherSuites(x); return bytesRead },
+		func(x []byte) (int) { hello.compression_methods, bytesRead = DeserializeCompressionMethods(x); return bytesRead },
+	}
+
 	var bufferPosition = 0;
+	for _, deserializer := range deserializers {
+		bufferPosition += deserializer(buf[bufferPosition:])
+	}
 
-	version, bytesRead := DeserializeProtocolVersion(buf[bufferPosition:])
-
-	bufferPosition += bytesRead
-
-	random, bytesRead := DeserializeClientRandom(buf[bufferPosition:])
-
-	bufferPosition += bytesRead
-
-	session_id, bytesRead := DeserializeSessionID(buf[bufferPosition:])
-
-	bufferPosition += bytesRead
-
-	suites, bytesRead := DeserializeCipherSuites(buf[bufferPosition:])
-
-	bufferPosition += bytesRead
-
-	compression_methods, bytesRead := DeserializeCompressionMethods(buf[bufferPosition:])
-
-	bufferPosition += bytesRead
-
-	return ClientHello{
-		version,
-		random,
-		session_id,
-		suites,
-		compression_methods,
-	}, bufferPosition
+	return hello, bufferPosition
 }

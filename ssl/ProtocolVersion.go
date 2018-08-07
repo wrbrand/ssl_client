@@ -5,6 +5,11 @@ type ProtocolVersion struct {
 	Minor uint8
 }
 
+var SSL3 ProtocolVersion = ProtocolVersion { 3, 0 }
+var TLS10 ProtocolVersion = ProtocolVersion { 3, 1 }
+var TLS11 ProtocolVersion = ProtocolVersion { 3, 2 }
+var TLS12 ProtocolVersion = ProtocolVersion { 3, 3 }
+
 func (version ProtocolVersion) GetSize() int {
 	return 2
 }
