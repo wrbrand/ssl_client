@@ -35,7 +35,20 @@ func DeserializeSSLPlaintext(buf []byte) SSLPlaintext {
 		func(x []byte) (int) { plaintext.Content_type, bytesRead = DeserializeContentType(x); return bytesRead },
 		func(x []byte) (int) { plaintext.Version, bytesRead = DeserializeProtocolVersion(x); return bytesRead },
 		func(x []byte) (int) { plaintext.Length, bytesRead = DeserializeContentSize(x); return bytesRead },
-		func(x []byte) (int) { obj, bytesRead := DeserializeHandshake(x); plaintext.Fragment = obj.GetSerialization(); return bytesRead },
+		func(x []byte) (int) {
+
+			switch(plaintext.Content_type) {
+			case HANDSHAKE:
+				obj, bytesRead := DeserializeHandshake(x);
+				plaintext.Fragment = obj.GetSerialization();
+				return bytesRead
+			case ALERT:
+				plaintext.Fragment, bytesRead = DeserializeAlert(x)
+				return bytesRead
+			default:
+				return bytesRead
+			}
+		},
 	}
 
 	var bufferPosition = 0;

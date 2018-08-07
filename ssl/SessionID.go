@@ -38,6 +38,12 @@ func (session SessionID) SerializeInto(buf []byte) {
 	copy(buf[1:1+session.Length], session.ID[0:session.Length])
 }
 
+func (session SessionID) Serialize() []byte {
+	obj := make([]byte, session.GetSize())
+	session.SerializeInto(obj)
+	return obj
+}
+
 func DeserializeSessionID(buf []byte) (SessionID, int) {
 	length := uint8(buf[0])
 

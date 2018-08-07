@@ -35,6 +35,12 @@ func (suites CipherSuites) SerializeInto(buf []byte) {
 	}
 }
 
+func (suites CipherSuites) Serialize() []byte {
+	obj := make([]byte, suites.GetSize())
+	suites.SerializeInto(obj)
+	return obj
+}
+
 func DeserializeCipherSuites(buf []byte) (CipherSuites, int) {
 	var suites []CipherSuite
 

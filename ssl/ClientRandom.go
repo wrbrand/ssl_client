@@ -36,6 +36,12 @@ func (random ClientRandom) SerializeInto(buf []byte) {
 	copy(buf[4:31], random.random_bytes)
 }
 
+func (random ClientRandom) Serialize() []byte {
+	obj := make([]byte, random.GetSize())
+	random.SerializeInto(obj)
+	return obj
+}
+
 func DeserializeClientRandom(buf []byte) (ClientRandom, int) {
 	return ClientRandom{
 		uint32(uint8(buf[0] << 24) + uint8(buf[1] << 16) + uint8(buf[2] << 8) + uint8(buf[3])),

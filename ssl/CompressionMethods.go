@@ -30,6 +30,12 @@ func (methods CompressionMethods) SerializeInto(buf []byte) {
 	}
 }
 
+func (methods CompressionMethods) Serialize() []byte {
+	obj := make([]byte, methods.GetSize())
+	methods.SerializeInto(obj)
+	return obj
+}
+
 func DeserializeCompressionMethods(buf []byte) (CompressionMethods, int) {
 	var suites []CompressionMethod
 

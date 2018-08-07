@@ -22,6 +22,12 @@ func (version ProtocolVersion) SerializeInto(buf []byte) {
 	buf[1] = version.Minor
 }
 
+func (version ProtocolVersion) Serialize() []byte {
+	obj := make([]byte, version.GetSize())
+	version.SerializeInto(obj)
+	return obj
+}
+
 func DeserializeProtocolVersion(buf []byte) (ProtocolVersion, int) {
 	return ProtocolVersion{buf[0], buf[1]}, 2
 }

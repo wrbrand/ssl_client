@@ -15,7 +15,7 @@ func main() {
 	config := ssl.LoadConfiguration("config.json")
 
 	//tryHandshake(ssl.NewClientRandom(), config)
-	tryDecodeHandshake(ssl.NewClientRandom(), config)
+	//tryDecodeHandshake(ssl.NewClientRandom(), config)
 	tryHandshake(ssl.NewClientRandom(), config)
 }
 
@@ -28,7 +28,14 @@ func tryHandshake(random ssl.ClientRandom, config ssl.Configuration) {
 	helloHandshake := ssl.NewHandshake(ssl.CLIENT_HELLO, helloBody.GetSerialization())
 	helloMessage := ssl.NewSSLPlaintext(ssl.HANDSHAKE, config.Handshake.HandshakeProtocolVersion, helloHandshake.GetSerialization())
 
-	getResponse("tcp", "example.com:443", helloMessage.GetSerialization().Serialize())
+	response := getResponse("tcp", "example.com:443", helloMessage.GetSerialization().Serialize())
+	fmt.Printf("Response: %x \n", response)
+
+	var message = ssl.DeserializeSSLPlaintext(response)
+	fmt.Print(message.Content_type)
+	if message.Content_type == ssl.ALERT {
+		fmt.Print(ssl.DeserializeAlert(message.GetSerialization().Serialize()))
+	}
 }
 
 func tryDecodeHandshake(random ssl.ClientRandom, config ssl.Configuration) {
@@ -45,11 +52,9 @@ func tryDecodeHandshake(random ssl.ClientRandom, config ssl.Configuration) {
 	fmt.Print("Version: ", message.Version, "\n")
 	fmt.Print("Length: ", message.Length, "\n")
 	fmt.Print("Fragment: ", message.Fragment, "\n")
-	fmt.Print(message.GetSerialization())
-	fmt.Printf("Reserialization: %x", message.GetSerialization().Serialize())
 }
 
-func getResponse(network string, address string, message []byte) {
+func getResponse(network string, address string, message []byte) []byte {
 	timeout := 30 * time.Second
 
 	conn, err := net.Dial(network, address)
@@ -71,7 +76,7 @@ func getResponse(network string, address string, message []byte) {
 	}
 	response = append(response, tmp[:n]...)
 
-	conn.Close();
+	defer conn.Close();
 
-	fmt.Printf("Response: %x", response)
+	return response
 }
