@@ -1,0 +1,47 @@
+package ssl
+
+type Extension uint16
+
+func NewExtension(value uint16) Extension {
+	return Extension(value)
+}
+
+func (extension Extension) GetValue() uint16 {
+	return uint16(extension)
+}
+
+const (
+	SERVER_NAME Extension 					= 0x0000
+	MAX_FRAGMENT_LENGTH		  				= 0x0001
+	STATUS_REQUEST				 			= 0x0005
+	SUPPORTED_GROUPS		       			= 0x000A
+	SIGNATURE_ALGORITHMS					= 0x000D
+	USE_SRTP								= 0x000E
+	HEARTBEAT								= 0x000F
+	APPLICATION_LAYER_PROTOCOL_NEGOTIATION	= 0x0010
+	SIGNED_CERTIFICATE_TIMESTAMP			= 0x0012
+	CLIENT_CERTIFICATE_TYPE					= 0x0013
+	SERVER_CERTIFICATE_TYPE					= 0x0014
+	PADDING									= 0x0015
+	PRE_SHARED_KEY							= 0x0029
+	EARLY_DATA								= 0x002A
+	SUPPORTED_VERSIONS						= 0x002B
+	COOKIE									= 0x002C
+	PSK_KEY_EXCHANGE_MODES					= 0x002D
+	CERTIFICATE_AUTHORITIES					= 0x002F
+	OID_FILTERS								= 0x0030
+	POST_HANDSHAKE_AUTH						= 0x0031
+	SIGNATURE_ALGORITHMS_CERT				= 0x0032
+	KEY_SHARE								= 0x0033
+)
+
+
+var SupportedExtensions = map[string]uint16 {
+	"SUPPORTED_VERSIONS": 0x002B,
+	"COOKIE": 0x002C,
+	"SIGNATURE_ALGORITHMS": 0x000D,
+	"SIGNATURE_ALGORITHMS_CERT": 0x0032,
+	"SUPPORTED_GROUPS": 0x000A,
+	"KEY_SHARE": 0x0033,
+	"SERVER_NAME": 0x0000,
+}

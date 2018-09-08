@@ -3,9 +3,10 @@ package ssl
 type ClientHello struct {
 	client_version      ProtocolVersion
 	random              ClientRandom
-	session_id          SessionID
+	session_id          SessionID	// Legacy
 	cipher_suites       CipherSuites
 	compression_methods CompressionMethods
+	extensions 			 Extensions
 }
 
 func NewClientHello(random ClientRandom, config Configuration) ClientHello {
@@ -17,6 +18,7 @@ func NewClientHello(random ClientRandom, config Configuration) ClientHello {
 		session_id:          config.Client.SessionID,
 		cipher_suites:       config.Client.GetCipherSuites(),
 		compression_methods: compression_methods,
+		extensions:			  config.Handshake.GetExtensions(),
 	}
 }
 
@@ -27,6 +29,7 @@ func (hello ClientHello) GetSerialization() NestedSerializable {
 		hello.session_id,
 		hello.cipher_suites,
 		hello.compression_methods,
+		hello.extensions,
 	})
 }
 

@@ -14,6 +14,9 @@
       "TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256",
       "TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8",
       "TLS_ECDHE_ECDSA_WITH_AES_256_CCM"
+    ],
+    "SupportedExtensions": [
+      
     ]
   },
   "Handshake": {
